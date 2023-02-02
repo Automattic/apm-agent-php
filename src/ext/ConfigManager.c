@@ -677,7 +677,6 @@ ELASTIC_APM_DEFINE_FIELD_ACCESS_FUNCS( boolValue, abortOnMemoryLeak )
 ELASTIC_APM_DEFINE_FIELD_ACCESS_FUNCS( boolValue, allowAbortDialog )
 #   endif
 ELASTIC_APM_DEFINE_FIELD_ACCESS_FUNCS( stringValue, apiKey )
-ELASTIC_APM_DEFINE_FIELD_ACCESS_FUNCS( stringValue, atomicSite )
 #   if ( ELASTIC_APM_ASSERT_ENABLED_01 != 0 )
 ELASTIC_APM_DEFINE_ENUM_FIELD_ACCESS_FUNCS( AssertLevel, assertLevel )
 #   endif
@@ -823,12 +822,6 @@ static void initOptionsMetadata( OptionMetadata* optsMeta )
             buildStringOptionMetadata,
             apiKey,
             ELASTIC_APM_CFG_OPT_NAME_API_KEY,
-            /* defaultValue: */ NULL );
-
-    ELASTIC_APM_INIT_DYNAMIC_METADATA(
-            buildStringOptionMetadata,
-            atomicSite,
-            ELASTIC_APM_CFG_OPT_NAME_ATOMIC_SITE,
             /* defaultValue: */ NULL );
 
     #if ( ELASTIC_APM_ASSERT_ENABLED_01 != 0 )
