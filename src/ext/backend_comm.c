@@ -182,7 +182,6 @@ ResultCode syncSendEventsToApmServer( bool disableSend
     int snprintfRetVal;
     const char* authKind = NULL;
     const char* authValue = NULL;
-    const char* atomicSiteValue = NULL;
 
     /* get a curl handle */
     curl = curl_easy_init();
@@ -243,16 +242,11 @@ ResultCode syncSendEventsToApmServer( bool disableSend
     // A8C: Add Atomic site ID if present
     if ( ! isNullOrEmtpyString( config->atomicSite ) )
     {
-        atomicSiteValue = config->atomicSite;
-    }
-
-    if ( atomicSiteValue != NULL )
-    {
-        snprintfRetVal = snprintf( atomicSite, atomicSiteBufferSize, "x-atomic-site: %u", atomicSiteValue );
+        snprintfRetVal = snprintf( atomicSite, atomicSiteBufferSize, "x-atomic-site: %s", config->atomicSite );
         if ( snprintfRetVal < 0 || snprintfRetVal >= authBufferSize )
         {
             ELASTIC_APM_LOG_ERROR( "Failed to build x-atomic-site header."
-                                   " snprintfRetVal: %d. atomicSiteValue: %s.", snprintfRetVal, atomicSiteValue );
+                                   " snprintfRetVal: %d. config->atomicSite: %s.", snprintfRetVal, config->atomicSite );
             ELASTIC_APM_SET_RESULT_CODE_AND_GOTO_FAILURE();
         }
         ELASTIC_APM_LOG_TRACE( "Adding header: %s", atomicSite );
