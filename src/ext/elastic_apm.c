@@ -175,6 +175,9 @@ PHP_INI_BEGIN()
     ELASTIC_APM_INI_ENTRY( ELASTIC_APM_CFG_OPT_NAME_SERVICE_NAME )
     ELASTIC_APM_INI_ENTRY( ELASTIC_APM_CFG_OPT_NAME_SERVICE_NODE_NAME )
     ELASTIC_APM_INI_ENTRY( ELASTIC_APM_CFG_OPT_NAME_SERVICE_VERSION )
+    ELASTIC_APM_INI_ENTRY( ELASTIC_APM_CFG_OPT_NAME_SPAN_COMPRESSION_ENABLED )
+    ELASTIC_APM_INI_ENTRY( ELASTIC_APM_CFG_OPT_NAME_SPAN_COMPRESSION_EXACT_MATCH_MAX_DURATION )
+    ELASTIC_APM_INI_ENTRY( ELASTIC_APM_CFG_OPT_NAME_SPAN_COMPRESSION_SAME_KIND_MAX_DURATION )
     ELASTIC_APM_INI_ENTRY( ELASTIC_APM_CFG_OPT_NAME_TRANSACTION_IGNORE_URLS )
     ELASTIC_APM_INI_ENTRY( ELASTIC_APM_CFG_OPT_NAME_TRANSACTION_MAX_SPANS )
     ELASTIC_APM_INI_ENTRY( ELASTIC_APM_CFG_OPT_NAME_TRANSACTION_SAMPLE_RATE )
@@ -567,16 +570,6 @@ PHP_FUNCTION( elastic_apm_log )
 }
 /* }}} */
 
-ZEND_BEGIN_ARG_INFO_EX( elastic_apm_force_init_server_global_var_arginfo, /* _unused */ 0, /* return_reference: */ 0, /* required_num_args: */ 0 )
-ZEND_END_ARG_INFO()
-/* {{{ elastic_apm_force_init_server_global_var(): void
- */
-PHP_FUNCTION( elastic_apm_force_init_server_global_var )
-{
-    zend_is_auto_global_str(ZEND_STRL("_SERVER"));
-}
-/* }}} */
-
 ZEND_BEGIN_ARG_INFO_EX( elastic_apm_get_last_thrown_arginfo, /* _unused */ 0, /* return_reference: */ 0, /* required_num_args: */ 0 )
 ZEND_END_ARG_INFO()
 /* {{{ elastic_apm_get_last_thrown(): mixed
@@ -640,7 +633,6 @@ static const zend_function_entry elastic_apm_functions[] =
     PHP_FE( elastic_apm_intercept_calls_to_internal_function, elastic_apm_intercept_calls_to_internal_function_arginfo )
     PHP_FE( elastic_apm_send_to_server, elastic_apm_send_to_server_arginfo )
     PHP_FE( elastic_apm_log, elastic_apm_log_arginfo )
-    PHP_FE( elastic_apm_force_init_server_global_var, elastic_apm_force_init_server_global_var_arginfo )
     PHP_FE( elastic_apm_get_last_thrown, elastic_apm_get_last_thrown_arginfo )
     PHP_FE( elastic_apm_get_last_php_error, elastic_apm_get_last_php_error_arginfo )
     PHP_FE_END
