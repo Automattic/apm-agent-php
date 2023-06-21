@@ -98,6 +98,9 @@ final class Snapshot implements LoggableInterface
     /** @var string */
     private $apiKey;
 
+    /** @var string */
+    private $atomicSite;
+
     /** @var bool */
     private $asyncBackendComm;
 

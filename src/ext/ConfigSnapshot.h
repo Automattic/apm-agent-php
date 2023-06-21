@@ -37,6 +37,7 @@ struct ConfigSnapshot
     AssertLevel assertLevel;
         #endif
     String apiKey;
+    String atomicSite;
     bool astProcessEnabled;
     bool astProcessDebugDumpConvertedBackToSource;
     String astProcessDebugDumpForPathPrefix;
