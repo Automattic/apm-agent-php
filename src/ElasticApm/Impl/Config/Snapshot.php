@@ -102,6 +102,18 @@ final class Snapshot implements LoggableInterface
     private $atomicSite;
 
     /** @var bool */
+    private $astProcessEnabled;
+
+    /** @var bool */
+    private $astProcessDebugDumpConvertedBackToSource;
+
+    /** @var string */
+    private $astProcessDebugDumpForPathPrefix;
+
+    /** @var string */
+    private $astProcessDebugDumpOutDir;
+
+    /** @var bool */
     private $asyncBackendComm;
 
     /** @var bool */
@@ -179,6 +191,12 @@ final class Snapshot implements LoggableInterface
     /** @var float */
     private $spanCompressionSameKindMaxDuration;
 
+    /** @var float */
+    private $spanStackTraceMinDuration;
+
+    /** @var int */
+    private $stackTraceLimit;
+
     /** @var ?WildcardListMatcher */
     private $transactionIgnoreUrls;
 
@@ -247,6 +265,11 @@ final class Snapshot implements LoggableInterface
     public function parsedValueFor(string $optName)
     {
         return $this->optNameToParsedValue[$optName];
+    }
+
+    public function astProcessEnabled(): bool
+    {
+        return $this->astProcessEnabled;
     }
 
     public function breakdownMetrics(): bool
@@ -352,6 +375,16 @@ final class Snapshot implements LoggableInterface
     public function spanCompressionSameKindMaxDuration(): float
     {
         return $this->spanCompressionSameKindMaxDuration;
+    }
+
+    public function spanStackTraceMinDuration(): float
+    {
+        return $this->spanStackTraceMinDuration;
+    }
+
+    public function stackTraceLimit(): int
+    {
+        return $this->stackTraceLimit;
     }
 
     public function transactionIgnoreUrls(): ?WildcardListMatcher
