@@ -20,6 +20,7 @@
 #include "elastic_apm_API.h"
 #include <unistd.h>
 #include <php.h>
+#include <php_main.h>
 #include "util.h"
 #include "log.h"
 #include "Tracer.h"
@@ -41,6 +42,11 @@ ResultCode elasticApmApiEntered( String dbgCalledFromFile, int dbgCalledFromLine
 
 bool elasticApmIsEnabled()
 {
+    const String atomicSite = getTracerCurrentConfigSnapshot( getGlobalTracer() )->atomicSite;
+    if ( atomicSite == NULL || atomicSite == "" || strcmp( sapi_module.name, "cli" ) == 0 ) {
+        return false;
+    }
+
     const bool result = getTracerCurrentConfigSnapshot( getGlobalTracer() )->enabled;
 
     ELASTIC_APM_LOG_TRACE( "Result: %s", boolToString( result ) );
