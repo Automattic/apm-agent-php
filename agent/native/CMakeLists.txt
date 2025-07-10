@@ -30,7 +30,7 @@ if(EXISTS /etc/alpine-release)
     set(MUSL_BUILD true)
 endif()
 
-if ((NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Linux") OR (NOT ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64"))
+if ((NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Linux") OR (NOT ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64" AND NOT ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64"))
      message(FATAL_ERROR "System or architecture not supported")
 endif()
 
@@ -86,10 +86,17 @@ endforeach()
 # TODO implement multiarray with mapping of library->version
 
 set(dependencies
+    "zlib/1.3"
     "libcurl/8.0.1"
-    "cmocka/1.1.5@"
     "libunwind/1.6.2"
+#    "boost/1.82.0"
+    "gtest/1.13.0"
 )
+
+# cmocka has issues on arm64
+if (NOT ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
+    list(APPEND dependencies "cmocka/1.1.5@")
+endif()
 
 foreach(_php_version ${_supported_php_versions})
    list(APPEND dependencies "php-headers-${_php_version}/1.0@elastic/local")
@@ -97,6 +104,7 @@ endforeach()
 
 conan_cmake_run(REQUIRES ${dependencies}
                 OPTIONS Pkg/*:shared=False
+#                        boost:header_only=True
                         libcurl:shared=True
                         libcurl:with_libssh2=True
                 BUILD missing
@@ -106,5 +114,10 @@ conan_cmake_run(REQUIRES ${dependencies}
                 RELEASE_PROFILE ${_CONAN_PROFILE}
                 BASIC_SETUP CMAKE_TARGETS UPDATE NO_OUTPUT_DIRS
                 )
+
+enable_testing()
+
+add_subdirectory(libcommon)
+add_subdirectory(libphpbridge)
 
 add_subdirectory(ext)
