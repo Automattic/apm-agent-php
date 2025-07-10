@@ -7,6 +7,7 @@
 #include <Zend/zend_globals.h>
 #include <Zend/zend_types.h>
 
+#include <main/SAPI.h>
 
 namespace elasticapm::php {
 
@@ -42,7 +43,7 @@ zval *PhpBridge::getClassPropertyValue(zend_class_entry *ce, zval *object, std::
 
 
 
-bool PhpBridge::callMethod(zval *object, std::string_view methodName, zval arguments[], int32_t argCount, zval *returnValue) {
+bool PhpBridge::callMethod(zval *object, std::string_view methodName, zval arguments[], int32_t argCount, zval *returnValue) const {
     AutoZval zMethodName;
 	ZVAL_STRINGL(zMethodName.get(), methodName.data(), methodName.length());
 
@@ -67,7 +68,7 @@ bool isObjectOfClass(zval *object, std::string_view className) {
 
 }
 
-bool PhpBridge::callInferredSpans(std::chrono::milliseconds duration) {
+bool PhpBridge::callInferredSpans(std::chrono::milliseconds duration) const {
     auto phpPartFacadeClass = findClassEntry("elastic\\apm\\impl\\autoinstrument\\phppartfacade"sv);
     if (!phpPartFacadeClass) {
         return false;
@@ -100,5 +101,8 @@ bool PhpBridge::callInferredSpans(std::chrono::milliseconds duration) {
     return callMethod(inferredSpansManager, "handleAutomaticCapturing"sv, params.data(), params.size(), rv.get());
 }
 
+std::string_view PhpBridge::getPhpSapiName() const {
+    return sapi_module.name;
+}
 
 }

@@ -195,6 +195,8 @@ PHP_INI_BEGIN()
     ELASTIC_APM_INI_ENTRY( ELASTIC_APM_CFG_OPT_NAME_TRANSACTION_SAMPLE_RATE )
     ELASTIC_APM_INI_ENTRY( ELASTIC_APM_CFG_OPT_NAME_URL_GROUPS )
     ELASTIC_APM_INI_ENTRY( ELASTIC_APM_CFG_OPT_NAME_VERIFY_SERVER_CERT )
+
+    ELASTIC_APM_INI_ENTRY( ELASTIC_APM_CFG_OPT_NAME_DEBUG_DIAGNOSTICS_FILE )
 PHP_INI_END()
 
 #undef ELASTIC_APM_INI_ENTRY_IMPL
@@ -273,17 +275,29 @@ static PHP_GINIT_FUNCTION(elastic_apm)
         phpBridge->callInferredSpans(now - requestTime);
     });
 
+    elasticapm::php::PhpSapi sapi(phpBridge->getPhpSapiName());
+
     try {
-        elastic_apm_globals->globals = new elasticapm::php::AgentGlobals(std::move(phpBridge), {}, std::move(inferredSpans));
+        elastic_apm_globals->globals = new elasticapm::php::AgentGlobals(std::move(phpBridge), std::move(sapi), {}, std::move(inferredSpans), std::make_shared<elasticapm::php::SharedMemoryState>());
     } catch (std::exception const &e) {
         ELASTIC_APM_LOG_DIRECT_CRITICAL( "Unable to allocate AgentGlobals. '%s'", e.what());
     }
+
+    ZVAL_UNDEF(&elastic_apm_globals->lastException);
+    new (&elastic_apm_globals->lastErrorData) std::unique_ptr<elasticapm::php::PhpErrorData>;
+    elastic_apm_globals->captureErrors = false;
 }
 
 static PHP_GSHUTDOWN_FUNCTION(elastic_apm) {
     ELASTIC_APM_LOG_DIRECT_DEBUG( "%s: GSHUTDOWN called; parent PID: %d", __FUNCTION__, (int)getParentProcessId() );
     if (elastic_apm_globals->globals) {
         delete elastic_apm_globals->globals;
+    }
+
+    if (elastic_apm_globals->lastErrorData) {
+        ELASTIC_APM_LOG_DIRECT_WARNING( "%s: still holding error", __FUNCTION__);
+        // we need to relese any dangling php error data beacause it is already freed (it was allocated in request pool)
+        elastic_apm_globals->lastErrorData.release();
     }
 }
 
@@ -712,7 +726,7 @@ zend_module_entry elastic_apm_module_entry = {
 	PHP_MODULE_GLOBALS(elastic_apm), /* PHP_MODULE_GLOBALS */
     PHP_GINIT(elastic_apm), 	     /* PHP_GINIT */
     PHP_GSHUTDOWN(elastic_apm),		 /* PHP_GSHUTDOWN */
-	NULL,                            /* post deactivate */
+	elasticApmRequestPostDeactivate, /* post deactivate */
 	STANDARD_MODULE_PROPERTIES_EX
 };
 /* }}} */
