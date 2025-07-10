@@ -183,7 +183,7 @@ class InferredSpansBuilderTest extends MockClockTracerUnitTestCaseBase
 
         self::assertSame('InferredSpansBuilderTest', ClassNameUtil::fqToShort(__CLASS__));
         self::assertSame('helperForTestOneStackTrace', $expectedStackTrace[0]->function);
-        self::assertSame('InferredSpansBuilderTest->helperForTestOneStackTrace', $span->name);
+        self::assertSame('InferredSpansBuilderTest::helperForTestOneStackTrace', $span->name);
         self::assertSame(InferredSpanExpectationsBuilder::DEFAULT_SPAN_TYPE, $span->type);
         self::assertSame($expectedTimestampMicroseconds, $span->timestamp);
         self::assertSame($expectedDurationMilliseconds, $span->duration);
@@ -337,6 +337,7 @@ class InferredSpansBuilderTest extends MockClockTracerUnitTestCaseBase
                 // Enable span stack trace collection for span with any duration
                 $tracerBuilder->withConfig(OptionNames::SPAN_STACK_TRACE_MIN_DURATION, '0');
                 foreach ($inputOptions as $optName => $optVal) {
+                    /** @phpstan-ignore-next-line */
                     $tracerBuilder->withConfig($optName, strval($optVal));
                 }
             }

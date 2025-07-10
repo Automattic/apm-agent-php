@@ -82,7 +82,7 @@ final class AllOptionsMetadata
         /** @var array<string, OptionMetadata<mixed>> $value */
         $value = [
             OptionNames::API_KEY                                    => new NullableStringOptionMetadata(),
-            OptionNames::AST_PROCESS_ENABLED                        => new BoolOptionMetadata(/* defaultValue: */ true),
+            OptionNames::AST_PROCESS_ENABLED                        => new BoolOptionMetadata(/* defaultValue: */ false),
             OptionNames::AST_PROCESS_DEBUG_DUMP_CONVERTED_BACK_TO_SOURCE
                                                                     => new BoolOptionMetadata(/* defaultValue: */ true),
             OptionNames::AST_PROCESS_DEBUG_DUMP_FOR_PATH_PREFIX     => new NullableStringOptionMetadata(),
@@ -103,7 +103,7 @@ final class AllOptionsMetadata
             OptionNames::NON_KEYWORD_STRING_MAX_LENGTH              => self::buildPositiveOrZeroIntMetadata(/* default */ 10 * 1024),
             OptionNames::PROFILING_INFERRED_SPANS_ENABLED           => new BoolOptionMetadata(/* default */ false),
             OptionNames::PROFILING_INFERRED_SPANS_MIN_DURATION      => self::buildDurationMetadataInMilliseconds(/* default */ 0),
-            OptionNames::PROFILING_INFERRED_SPANS_SAMPLING_INTERVAL => self::buildDurationMetadataInMillisecondsWithMin(/* min */ 1000, /* default */ 1000),
+            OptionNames::PROFILING_INFERRED_SPANS_SAMPLING_INTERVAL => self::buildDurationMetadataInMillisecondsWithMin(/* min */ 1, /* default */ 50),
             OptionNames::SANITIZE_FIELD_NAMES                       => new WildcardListOptionMetadata(WildcardListOptionParser::staticParse(self::SANITIZE_FIELD_NAMES_DEFAULT)),
             OptionNames::SECRET_TOKEN                               => new NullableStringOptionMetadata(),
             OptionNames::SERVER_TIMEOUT                             => self::buildDurationMetadataInSeconds(/* default */ 30),
