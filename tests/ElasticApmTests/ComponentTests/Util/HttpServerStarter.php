@@ -223,7 +223,7 @@ abstract class HttpServerStarter
                 try {
                     $response = HttpClientUtilForTests::sendRequest(
                         HttpConstantsForTests::METHOD_GET,
-                        (new UrlParts())->host(HttpServerHandle::CLIENT_LOCALHOST_ADDRESS)
+                        (new UrlParts())->host(HttpServerHandle::DEFAULT_HOST)
                                         ->port($port)
                                         ->path(HttpServerHandle::STATUS_CHECK_URI_PATH),
                         $dataPerRequest

@@ -49,22 +49,22 @@ use Throwable;
 final class Transaction extends ExecutionSegment implements TransactionInterface
 {
     /** @var ?string */
-    private $parentId = null;
+    public $parentId = null;
 
     /** @var int */
     public $startedSpansCount = 0;
 
     /** @var int */
-    private $droppedSpansCount = 0;
+    public $droppedSpansCount = 0;
 
     /** @var ?string */
-    private $result = null;
+    public $result = null;
 
     /** @var bool */
-    private $isSampled;
+    public $isSampled;
 
     /** @var ?TransactionContext */
-    private $context = null;
+    public $context = null;
 
     /** @var Tracer */
     private $tracer;

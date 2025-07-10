@@ -189,7 +189,7 @@ function get_extension_file() {
 #    if grep -q -i alpine /etc/os-release; then
 #        SUFFIX=-alpine
 #    fi
-    echo "${EXTENSION_DIR}/elastic_apm_loader.so"
+    echo "${EXTENSION_DIR}/elastic_apm-${PHP_API}${SUFFIX}.so"
 }
 
 ################################################################################
@@ -204,13 +204,11 @@ function is_php_supported() {
         [ "${PHP_MAJOR_MINOR}" == "7.4" ] || \
         [ "${PHP_MAJOR_MINOR}" == "8.0" ] || \
         [ "${PHP_MAJOR_MINOR}" == "8.1" ] || \
-        [ "${PHP_MAJOR_MINOR}" == "8.2" ] || \
-        [ "${PHP_MAJOR_MINOR}" == "8.3" ] || \
-        [ "${PHP_MAJOR_MINOR}" == "8.4" ]
+        [ "${PHP_MAJOR_MINOR}" == "8.2" ]
     then
         return 0
     else
-        echo 'Failed. The supported PHP versions are 7.2-8.4.'
+        echo 'Failed. The supported PHP versions are 7.2-8.2.'
         return 1
     fi
 }

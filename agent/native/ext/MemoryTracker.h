@@ -19,7 +19,6 @@
 
 #pragma once
 
-#include <algorithm>
 #include <stdbool.h>
 #include "basic_types.h"
 #include "StringView.h"
@@ -124,7 +123,7 @@ void reconfigureMemoryTracker(
 
     /// We cannot increase tacking level after the start because it's possible that some allocations were already made
     /// so starting tracking with higher level after some allocations were already made will produce invalid results
-    memTracker->level = std::min( memTracker->level, newConfiguredLevel );
+    memTracker->level = ELASTIC_APM_MIN( memTracker->level, newConfiguredLevel );
 
     memTracker->abortOnMemoryLeak = newConfiguredAbortOnMemoryLeak;
 }

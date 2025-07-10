@@ -35,7 +35,6 @@ use Elastic\Apm\Impl\Log\LoggingSubsystem;
 use Elastic\Apm\Impl\Util\BoolUtil;
 use Elastic\Apm\Impl\Util\ClassNameUtil;
 use Elastic\Apm\Impl\Util\ExceptionUtil;
-use Elastic\Apm\Impl\Util\PhpErrorUtil;
 use Elastic\Apm\Impl\Util\UrlParts;
 use ElasticApmTests\Util\LogCategoryForTests;
 use PHPUnit\Framework\TestCase;
@@ -62,7 +61,6 @@ abstract class SpawnedProcessBase implements LoggableInterface
             [
                 'AmbientContext::testConfig()' => AmbientContextForTests::testConfig(),
                 'Environment variables'        => EnvVarUtilForTests::getAll(),
-                'error_reporting()'            => PhpErrorUtil::convertErrorReportingValueToHumanReadableString(error_reporting()),
             ]
         );
     }

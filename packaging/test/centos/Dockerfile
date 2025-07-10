@@ -2,8 +2,6 @@ FROM centos:centos7
 ARG PHP_VERSION=7.2
 ENV PHP_VERSION ${PHP_VERSION}
 
-COPY CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo
-
 RUN yum update -y \
     && yum install -y \
             git \
@@ -25,6 +23,7 @@ RUN export PHP_VERSION_TRANSFORMED=$(echo "${PHP_VERSION}" | sed 's#\.##g') \
     && yum install -y \
             php \
             php-mbstring \
+            php-mysql \
             php-mysqli \
             php-pcntl \
             php-posix \
