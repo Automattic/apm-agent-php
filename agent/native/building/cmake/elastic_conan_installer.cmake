@@ -85,7 +85,7 @@ configure_file("${CMAKE_SOURCE_DIR}/building/conan/conan_profile.in" "${_CONAN_P
 
 
 if(_VENV_CREATED)
-    # Installing conan and required dependencies 
+    # Installing conan and required dependencies
     execute_process(
         COMMAND ${python_pip} install -U pip
         COMMAND_ERROR_IS_FATAL ANY
@@ -97,7 +97,7 @@ if(_VENV_CREATED)
     )
 
     execute_process(
-        COMMAND ${python_pip} install -U conan==1.60.0
+        COMMAND ${python_pip} install -U conan==1.62.0
         COMMAND_ERROR_IS_FATAL ANY
     )
 
@@ -115,3 +115,7 @@ include(conan)
 conan_check()
 
 include(elastic_conan_export)
+
+# attach Elastic conan remote and make it default
+conan_add_remote(NAME ElasticConan URL https://artifactory.elastic.dev/artifactory/api/conan/apm-agent-php-dev INDEX 0)
+conan_update_remote(NAME conancenter URL https://center.conan.io INDEX 1)
