@@ -1,22 +1,38 @@
 ifeq ($(DOCKERFILE),)
 	ifeq ($(BUILD_ARCHITECTURE), linuxmusl-x86-64)
 		DOCKERFILE := Dockerfile.alpine
+	else ifeq ($(BUILD_ARCHITECTURE), linuxmusl-arm64)
+		DOCKERFILE := Dockerfile.alpine
 	else
 		DOCKERFILE := Dockerfile
 	endif
 endif
+
+DOCKER_PLATFORM := linux/x86_64
+ifeq ($(BUILD_ARCHITECTURE), linux-arm64)
+	DOCKER_PLATFORM := linux/arm64
+else ifeq ($(BUILD_ARCHITECTURE), linuxmusl-arm64)
+	DOCKER_PLATFORM := linux/arm64
+endif
+
 
 SHELL=/bin/bash -o pipefail
 MAKEFLAGS += --no-print-directory
 IMAGE := test-php
 PHP_VERSION ?= 7.2
 DOCKERFILE ?= Dockerfile
+SEL_DISTRO=buster
 LOOPS ?= 50
 SUFFIX :=
 ifeq ($(DOCKERFILE), Dockerfile.alpine)
     ## This is only required to tag the docker images used for building/testing this project
     SUFFIX := -alpine
 endif
+
+ifneq ($(PHP_VERSION), 7.2)
+	SEL_DISTRO := bullseye
+endif
+
 
 CONAN_USER_HOME:=/tmp/conan_user_home
 MAP_CONAN_HOME_TO_DOCKER_HOST_CMD_LINE_ARG:=
@@ -37,8 +53,9 @@ help: ## Display this help text
 prepare:  ## Build docker image for building and testing the project
 	@echo "::group::$@"  # Helping to group logs in GitHub actions
 	docker build \
-		--build-arg PHP_VERSION=${PHP_VERSION} \
+		--build-arg PHP_VERSION=${PHP_VERSION} --build-arg SEL_DISTRO=${SEL_DISTRO}\
 		--tag $(IMAGE):${PHP_VERSION}$(SUFFIX) \
+		--platform $(DOCKER_PLATFORM) \
 		-f ${DOCKERFILE} .
 	@echo "::endgroup::"
 
@@ -53,7 +70,7 @@ build:
 		-w /source/agent/native \
 		-e CONAN_USER_HOME=$(CONAN_USER_HOME) \
 		elasticobservability/apm-agent-php-dev:native-build-gcc-12.2.0-$(BUILD_ARCHITECTURE)-0.0.2 \
-		sh -c "cmake --preset $(BUILD_ARCHITECTURE)-release \
+		sh -c "cmake --preset $(BUILD_ARCHITECTURE)-release  \
 				&& cmake --build --preset $(BUILD_ARCHITECTURE)-release \
 				&& ctest --preset $(BUILD_ARCHITECTURE)-release --verbose"
 	@echo "::endgroup::"
