@@ -14,7 +14,6 @@
         "generator": "Unix Makefiles",
         "binaryDir": "${sourceDir}/_build/${presetName}",
         "environment": {
-            "MY_ENVIRONMENT_VARIABLE": "Test",
             "PATH": "$env{HOME}/ninja/bin:$penv{PATH}"
         }
     },
@@ -102,7 +101,39 @@
             "debug",
             "binutils"
         ]
-	}
+	},
+    {
+        "name": "linux-arm64-release",
+        "inherits": [
+            "os-type-unix",
+            "release",
+            "binutils"
+        ]
+    },
+    {
+        "name": "linux-arm64-debug",
+        "inherits": [
+            "os-type-unix",
+            "debug",
+            "binutils"
+        ]
+    },
+    {
+        "name": "linuxmusl-arm64-release",
+        "inherits": [
+            "os-type-unix",
+            "release",
+            "binutils"
+        ]
+    },
+    {
+        "name": "linuxmusl-arm64-debug",
+        "inherits": [
+            "os-type-unix",
+            "debug",
+            "binutils"
+        ]
+    }    
     ],
     "buildPresets": [
     {
@@ -146,14 +177,108 @@
         "inherits": [
             "release"
         ]
+    },
+    {
+        "name": "linux-arm64-debug",
+        "configurePreset": "linux-arm64-debug",
+        "inherits": [
+            "debug"
+        ]
+    },
+    {
+        "name": "linux-arm64-release",
+        "configurePreset": "linux-arm64-release",
+        "inherits": [
+            "release"
+        ]
+    },
+    {
+        "name": "linuxmusl-arm64-debug",
+            "configurePreset": "linuxmusl-arm64-debug",
+            "inherits": [
+	            "debug"
+        ]
+    },
+    {
+        "name": "linuxmusl-arm64-release",
+        "configurePreset": "linuxmusl-arm64-release",
+        "inherits": [
+            "release"
+        ]
     }
     ],
     "testPresets": [
-      {
-        "name": "default",
-        "configurePreset": "default",
-        "output": {"outputOnFailure": true},
-        "execution": {"noTestsAction": "error", "stopOnFailure": true}
-      }
+        {
+            "name": "default",
+            "configurePreset": "default",
+            "output": {"outputOnFailure": true, "verbosity": "verbose"},
+            "execution": {"noTestsAction": "error", "stopOnFailure": true}
+        },
+        {
+            "name": "release",
+            "hidden": true,
+            "configuration": "Release"
+        },
+        {
+            "name": "debug",
+            "hidden": true,
+            "configuration": "Debug"
+        },
+        {
+            "name": "linux-x86-64-debug",
+            "configurePreset": "linux-x86-64-debug",
+            "inherits": [
+                "debug"
+            ]
+        },
+        {
+            "name": "linux-x86-64-release",
+            "configurePreset": "linux-x86-64-release",
+            "inherits": [
+                "release"
+            ]
+        },
+        {
+            "name": "linuxmusl-x86-64-debug",
+            "configurePreset": "linuxmusl-x86-64-debug",
+            "inherits": [
+                "debug"
+            ]
+        },
+        {
+            "name": "linuxmusl-x86-64-release",
+            "configurePreset": "linuxmusl-x86-64-release",
+            "inherits": [
+                "release"
+            ]
+        },
+        {
+            "name": "linux-arm64-debug",
+            "configurePreset": "linux-arm64-debug",
+            "inherits": [
+                "debug"
+            ]
+        },
+        {
+            "name": "linux-arm64-release",
+            "configurePreset": "linux-arm64-release",
+            "inherits": [
+                "release"
+            ]
+        },
+        {
+            "name": "linuxmusl-arm64-debug",
+            "configurePreset": "linux-arm64-debug",
+            "inherits": [
+                "debug"
+            ]
+        },
+        {
+            "name": "linuxmusl-arm64-release",
+            "configurePreset": "linux-arm64-release",
+            "inherits": [
+                "release"
+            ]
+        }        
     ]
   }

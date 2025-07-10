@@ -19,13 +19,20 @@
 
 #pragma once
 
+#include "Tracer.h"
+#include "elastic_apm_version.h"
+
+#include "AgentGlobals.h"
+
+#include "PhpErrorData.h"
+
 #include <php.h>
 #include <zend.h>
 #include <zend_API.h>
 #include <zend_modules.h>
 
-#include "Tracer.h"
-#include "elastic_apm_version.h"
+#include <memory>
+
 
 extern zend_module_entry elastic_apm_module_entry;
 
@@ -33,11 +40,24 @@ extern zend_module_entry elastic_apm_module_entry;
 ZEND_TSRMLS_CACHE_EXTERN()
 #endif
 
+
+
 ZEND_BEGIN_MODULE_GLOBALS(elastic_apm)
     Tracer globalTracer;
+    elasticapm::php::AgentGlobals *globals;
+    zval lastException;
+    std::unique_ptr<elasticapm::php::PhpErrorData> lastErrorData;
+    bool captureErrors;
 ZEND_END_MODULE_GLOBALS(elastic_apm)
 
 ZEND_EXTERN_MODULE_GLOBALS(elastic_apm)
+
+#ifdef ZTS
+#define ELASTICAPM_G(member) ZEND_MODULE_GLOBALS_ACCESSOR(elastic_apm, member)
+#else
+#define ELASTICAPM_G(member) (elastic_apm_globals.member)
+#endif
+
 
 ResultCode registerElasticApmIniEntries( int type, int module_number, IniEntriesRegistrationState* iniEntriesRegistrationState );
 void unregisterElasticApmIniEntries( int type, int module_number, IniEntriesRegistrationState* iniEntriesRegistrationState );

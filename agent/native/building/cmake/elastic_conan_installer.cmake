@@ -39,6 +39,17 @@ execute_process(
 
 set(_PRV_CONAN_PROFILE_OS ${CMAKE_SYSTEM_NAME})
 
+
+if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
+    set(_PRV_CONAN_PROFILE_ARCH "arch=armv8")
+    set(_PRV_CONAN_PROFILE_ARCH_BUILD "arch_build=armv8")
+elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
+    set(_PRV_CONAN_PROFILE_ARCH "arch=x86_64")
+    set(_PRV_CONAN_PROFILE_ARCH_BUILD "arch_build=x86_64")
+else()
+    message(FATAL_ERROR "CPU Architecure not supported ${CMAKE_SYSTEM_PROCESSOR}")
+endif()
+
 if (MUSL_BUILD)
     #this is workaround to force build from souce on musl - this will prevent from installing libc binaries
     set(_PRV_CONAN_PROFILE_OS_DISTRO "os.distro=Alpine")
@@ -49,7 +60,7 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 endif()
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-    message(STATUS "Linux ${_PRV_CONAN_PROFILE_OS_DISTRO}, ${_PRV_COMPILER_LIBC_IMPLEMENTATION}")
+    message(STATUS "Linux ${_PRV_CONAN_PROFILE_OS_DISTRO}, ${_PRV_COMPILER_LIBC_IMPLEMENTATION}, ${_PRV_CONAN_PROFILE_ARCH_BUILD}")
 endif()
 
 # setting up paths used to configure compiler profile
@@ -74,19 +85,19 @@ configure_file("${CMAKE_SOURCE_DIR}/building/conan/conan_profile.in" "${_CONAN_P
 
 
 if(_VENV_CREATED)
-    # Installing conan and required dependencies 
+    # Installing conan and required dependencies
     execute_process(
         COMMAND ${python_pip} install -U pip
         COMMAND_ERROR_IS_FATAL ANY
     )
 
     execute_process(
-        COMMAND ${python_pip} install -U wheel
+        COMMAND ${python_pip} install -U "pyyaml==3.11"
         COMMAND_ERROR_IS_FATAL ANY
     )
 
     execute_process(
-        COMMAND ${python_pip} install -U conan<2.0
+        COMMAND ${python_pip} install -U conan==1.62.0
         COMMAND_ERROR_IS_FATAL ANY
     )
 
@@ -104,3 +115,7 @@ include(conan)
 conan_check()
 
 include(elastic_conan_export)
+
+# attach Elastic conan remote and make it default
+conan_add_remote(NAME ElasticConan URL https://artifactory.elastic.dev/artifactory/api/conan/apm-agent-php-dev INDEX 0)
+conan_update_remote(NAME conancenter URL https://center.conan.io INDEX 1)

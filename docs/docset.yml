@@ -1,0 +1,13 @@
+project: 'APM PHP agent docs'
+products:
+  - id: apm-agent
+cross_links:
+  - apm-agent-rum-js
+  - docs-content
+toc:
+  - toc: reference
+  - toc: release-notes
+subs:
+  ecloud:   "Elastic Cloud"
+  ess:   "Elasticsearch Service"
+  es:   "Elasticsearch"
