@@ -42,7 +42,7 @@ final class JsonUtil
      */
     public static function encode($data, bool $prettyPrint = false): string
     {
-        $options = JSON_INVALID_UTF8_SUBSTITUTE;
+        $options = 0;
         $options |= $prettyPrint ? JSON_PRETTY_PRINT : 0;
         $encodedData = json_encode($data, $options);
         if ($encodedData === false) {

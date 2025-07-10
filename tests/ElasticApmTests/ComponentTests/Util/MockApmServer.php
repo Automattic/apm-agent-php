@@ -71,7 +71,6 @@ final class MockApmServer extends TestInfraHttpServerProcessBase
 
     public function __construct()
     {
-        /** @noinspection PhpUnhandledExceptionInspection */
         parent::__construct();
 
         $this->clock = new Clock(AmbientContextForTests::loggerFactory());
@@ -173,7 +172,7 @@ final class MockApmServer extends TestInfraHttpServerProcessBase
     /**
      * @param ServerRequestInterface $request
      *
-     * @return ResponseInterface|Promise<ResponseInterface>
+     * @return ResponseInterface|Promise
      */
     private function processMockApiRequest(ServerRequestInterface $request)
     {
@@ -190,7 +189,7 @@ final class MockApmServer extends TestInfraHttpServerProcessBase
     /**
      * @param ServerRequestInterface $request
      *
-     * @return ResponseInterface|Promise<ResponseInterface>
+     * @return ResponseInterface|Promise
      */
     private function getIntakeApiRequests(ServerRequestInterface $request)
     {

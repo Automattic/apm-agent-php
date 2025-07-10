@@ -21,7 +21,7 @@
 
 declare(strict_types=1);
 
-error_reporting(E_ALL);
+error_reporting(E_ALL | E_STRICT);
 
 function elasticApmOnAssertFailure(string $condDesc, string $expr, $actual, $expected)
 {

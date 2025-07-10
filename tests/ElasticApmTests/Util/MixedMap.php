@@ -194,7 +194,6 @@ class MixedMap implements LoggableInterface, ArrayAccess
             TestCaseBase::assertGreaterThanOrEqual(0, $value);
         }
         /** @var null|positive-int|0 $value */
-        $dbgCtx->pop();
         return $value;
     }
 
@@ -217,7 +216,6 @@ class MixedMap implements LoggableInterface, ArrayAccess
         $value = $this->getInt($key);
         TestCaseBase::assertGreaterThanOrEqual(0, $value);
         /** @var positive-int|0 $value */
-        $dbgCtx->pop();
         return $value;
     }
 

@@ -48,7 +48,7 @@ class Error implements SerializableDataInterface, LoggableInterface
      *
      * @link https://github.com/elastic/apm-server/blob/7.0/docs/spec/errors/error.json#L6
      */
-    private $timestamp;
+    public $timestamp;
 
     /**
      * @var string
@@ -71,7 +71,7 @@ class Error implements SerializableDataInterface, LoggableInterface
      *
      * @link https://github.com/elastic/apm-server/blob/7.0/docs/spec/errors/error.json#L14
      */
-    private $traceId = null;
+    public $traceId = null;
 
     /**
      * @var ?string
@@ -83,7 +83,7 @@ class Error implements SerializableDataInterface, LoggableInterface
      *
      * @link https://github.com/elastic/apm-server/blob/7.0/docs/spec/errors/error.json#L19
      */
-    private $transactionId = null;
+    public $transactionId = null;
 
     /**
      * @var ?string
@@ -95,7 +95,7 @@ class Error implements SerializableDataInterface, LoggableInterface
      *
      * @link https://github.com/elastic/apm-server/blob/7.0/docs/spec/errors/error.json#L24
      */
-    private $parentId = null;
+    public $parentId = null;
 
     /**
      * @var ?ErrorTransactionData
@@ -104,14 +104,14 @@ class Error implements SerializableDataInterface, LoggableInterface
      *
      * @link https://github.com/elastic/apm-server/blob/7.0/docs/spec/errors/error.json#L29
      */
-    private $transaction = null;
+    public $transaction = null;
 
     /**
      * @var ?TransactionContext
      *
      * @link https://github.com/elastic/apm-server/blob/7.0/docs/spec/errors/error.json#L44
      */
-    private $context = null;
+    public $context = null;
 
     /**
      * @var ?string
@@ -122,7 +122,7 @@ class Error implements SerializableDataInterface, LoggableInterface
      *
      * @link https://github.com/elastic/apm-server/blob/v7.0.0/docs/spec/errors/error.json#L47
      */
-    private $culprit = null;
+    public $culprit = null;
 
     /**
      * @var ?ErrorExceptionData
@@ -131,7 +131,7 @@ class Error implements SerializableDataInterface, LoggableInterface
      *
      * @link https://github.com/elastic/apm-server/blob/7.0/docs/spec/errors/error.json#L29
      */
-    private $exception = null;
+    public $exception = null;
 
     public static function build(Tracer $tracer, ErrorExceptionData $errorExceptionData, ?Transaction $transaction, ?Span $span): Error
     {

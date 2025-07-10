@@ -118,19 +118,10 @@ enum OptionId
     optionId_transactionSampleRate,
     optionId_urlGroups,
     optionId_verifyServerCert,
-    optionId_debugDiagnosticsFile,
 
     numberOfOptions
 };
 typedef enum OptionId OptionId;
-
-#ifdef __cplusplus
-inline OptionId &operator++(OptionId &id) {
-    id  = static_cast<OptionId>(static_cast<int>(id) + 1);
-    return id; 
-}
-#endif
-
 
 #define ELASTIC_APM_FOR_EACH_OPTION_ID( optIdVar ) ELASTIC_APM_FOR_EACH_INDEX_EX( OptionId, optIdVar, numberOfOptions )
 
@@ -338,8 +329,5 @@ const ConfigSnapshot* getGlobalCurrentConfigSnapshot();
 #define ELASTIC_APM_CFG_OPT_NAME_TRANSACTION_SAMPLE_RATE "transaction_sample_rate"
 #define ELASTIC_APM_CFG_OPT_NAME_URL_GROUPS "url_groups"
 #define ELASTIC_APM_CFG_OPT_NAME_VERIFY_SERVER_CERT "verify_server_cert"
-
-#define ELASTIC_APM_CFG_OPT_NAME_DEBUG_DIAGNOSTICS_FILE "debug_diagnostic_file"
-
 
 #define ELASTIC_APM_CFG_CONVERT_OPT_NAME_TO_INI_NAME( optNameStringLiteral ) ( "elastic_apm." optNameStringLiteral )

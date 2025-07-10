@@ -1,10 +1,7 @@
 ARG PHP_VERSION=7.2
-ARG SEL_DISTRO=buster
-
-FROM php:${PHP_VERSION}-fpm-${SEL_DISTRO}
+FROM php:${PHP_VERSION}-fpm-buster
 
 RUN apt-get -qq update \
-    && apt-get -qq -y --no-install-recommends install apt-transport-https \
     && apt-get -qq -y --no-install-recommends install \
         dpkg-sig \
         gnupg \

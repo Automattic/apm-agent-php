@@ -123,7 +123,6 @@ final class TextUtilForTests
      */
     public static function emptyIfNull($input): string
     {
-        /** @phpstan-ignore-next-line */
         return $input === null ? '' : strval($input);
     }
 }

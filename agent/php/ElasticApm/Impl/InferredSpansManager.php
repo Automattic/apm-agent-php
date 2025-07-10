@@ -55,6 +55,9 @@ final class InferredSpansManager implements LoggableInterface
     /** @var Tracer */
     private $tracer;
 
+    /** @var bool */
+    private $originalPcntlAsyncSignalsEnabled;
+
     /** @var ?InferredSpansBuilder */
     private $builder = null;
 
@@ -117,21 +120,73 @@ final class InferredSpansManager implements LoggableInterface
             return false;
         }
 
+        if (!extension_loaded('pcntl')) {
+            ($loggerProxy = $this->logger->ifDebugLevelEnabled(__LINE__, __FUNCTION__))
+            && $loggerProxy->log('Inferred spans feature is disabled because pcntl PHP extension is not loaded');
+            return false;
+        }
+
         return true;
     }
 
-    public function handleAutomaticCapturing(int $duration): void
+    private function enablePeriodicAlarmSignal(): bool
+    {
+        $installSignalHandlerRetVal = pcntl_signal(
+            SIGALRM,
+            function (): void {
+                $this->handleAlarmSignal();
+            }
+        );
+        if (!$installSignalHandlerRetVal) {
+            ($loggerProxy = $this->logger->ifErrorLevelEnabled(__LINE__, __FUNCTION__))
+            && $loggerProxy->log(
+                'Inferred spans feature is disabled because pcntl_signal returned false (meaning failure)'
+            );
+            return false;
+        }
+
+        $this->originalPcntlAsyncSignalsEnabled = pcntl_async_signals(true);
+        $this->setAlarmTimer();
+
+        return true;
+    }
+
+    private function disablePeriodicAlarmSignal(): void
+    {
+        // Disable SIGALRM
+        pcntl_alarm(/* seconds */ 0);
+        pcntl_async_signals($this->originalPcntlAsyncSignalsEnabled);
+
+        $installSignalHandlerRetVal = pcntl_signal(SIGALRM, SIG_DFL);
+        if (!$installSignalHandlerRetVal) {
+            ($loggerProxy = $this->logger->ifErrorLevelEnabled(__LINE__, __FUNCTION__))
+            && $loggerProxy->log(
+                'While setting SIGALRM signal handler back to default pcntl_signal returned false (meaning failure)'
+            );
+        }
+    }
+
+    private function handleAlarmSignal(): void
     {
         ($loggerProxy = $this->logger->ifTraceLevelEnabled(__LINE__, __FUNCTION__))
         && $loggerProxy->log('Entered');
 
         if (!$this->isShutdown() && $this->builder !== null) {
             $stackTrace = $this->builder->captureStackTrace(/* offset */ 1);
-
-            if (count($stackTrace) > 0) {
-                $this->builder->addStackTrace($stackTrace, $duration);
-            }
+            $this->builder->addStackTrace($stackTrace);
+            $this->setAlarmTimer();
         }
+
+        ($loggerProxy = $this->logger->ifTraceLevelEnabled(__LINE__, __FUNCTION__))
+        && $loggerProxy->log('Exiting');
+    }
+
+    private function setAlarmTimer(): void
+    {
+        ($loggerProxy = $this->logger->ifTraceLevelEnabled(__LINE__, __FUNCTION__))
+        && $loggerProxy->log('Entered');
+
+        pcntl_alarm(/* seconds */ 1);
 
         ($loggerProxy = $this->logger->ifTraceLevelEnabled(__LINE__, __FUNCTION__))
         && $loggerProxy->log('Exiting');
@@ -146,6 +201,7 @@ final class InferredSpansManager implements LoggableInterface
             return;
         }
 
+        $this->disablePeriodicAlarmSignal();
         if ($this->builder !== null) {
             $this->builder->close();
             $this->builder = null;
@@ -188,6 +244,13 @@ final class InferredSpansManager implements LoggableInterface
         && $assertProxy->that($this->state === self::STATE_WAITING_FOR_NEW_TRANSACTION)
         && $assertProxy->withContext('$this->state === self::STATE_WAITING_FOR_NEW_TRANSACTION', ['this' => $this]);
 
+        if (!$this->enablePeriodicAlarmSignal()) {
+            ($loggerProxy = $this->logger->ifDebugLevelEnabled(__LINE__, __FUNCTION__))
+            && $loggerProxy->log('Failed to enable periodic alarm signal - shutting down...');
+            $this->shutdown();
+            return;
+        }
+
         ($assertProxy = Assert::ifEnabled())
         && $assertProxy->that($this->currentTransaction === null)
         && $assertProxy->withContext('$this->currentTransaction === null', ['this' => $this]);
@@ -205,14 +268,11 @@ final class InferredSpansManager implements LoggableInterface
         ($assertProxy = Assert::ifEnabled())
         && $assertProxy->that($this->onCurrentSpanChangedCallback === null)
         && $assertProxy->withContext('$this->onCurrentSpanChangedCallback === null', ['this' => $this]);
-
-        if ($this->currentTransaction !== null) {
-            $this->currentTransaction->onCurrentSpanChanged->add(
-                $this->onCurrentSpanChangedCallback = function (?Span $span): void {
-                    $this->onCurrentSpanChanged($span);
-                }
-            );
-        }
+        $this->currentTransaction->onCurrentSpanChanged->add(
+            $this->onCurrentSpanChangedCallback = function (?Span $span): void {
+                $this->onCurrentSpanChanged($span);
+            }
+        );
 
         $this->builder = new InferredSpansBuilder($this->tracer);
         $this->state = self::STATE_RUNNING;
@@ -265,6 +325,12 @@ final class InferredSpansManager implements LoggableInterface
 
         if ($span === null) {
             if ($this->state === self::STATE_RUNNING) {
+                return;
+            }
+            if (!$this->enablePeriodicAlarmSignal()) {
+                ($loggerProxy = $this->logger->ifDebugLevelEnabled(__LINE__, __FUNCTION__))
+                && $loggerProxy->log('Failed to enabled periodic alarm signal - shutting down...');
+                $this->shutdown();
                 return;
             }
 
