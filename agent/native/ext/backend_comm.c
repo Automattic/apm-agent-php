@@ -279,7 +279,7 @@ String streamCurlData( const char* dataViewBegin, size_t dataViewLength, TextOut
 /**
  * @link https://curl.se/libcurl/c/CURLOPT_DEBUGFUNCTION.html
  */
-void curlDebugCallback( CURL* curlHandle, curl_infotype type, char* dataViewBegin, size_t dataViewLength, void* ctx )
+int curlDebugCallback( CURL* curlHandle, curl_infotype type, char* dataViewBegin, size_t dataViewLength, void* ctx )
 {
     ELASTIC_APM_UNUSED( curlHandle );
     ELASTIC_APM_UNUSED( ctx );
@@ -431,7 +431,7 @@ ResultCode initConnectionData( const ConfigSnapshot* config, ConnectionData* con
     ELASTIC_APM_CALL_IF_FAILED_GOTO( addToCurlStringList( /* in,out */ &connectionData->requestHeaders, "Content-Type: application/x-ndjson" ) );
     ELASTIC_APM_CURL_EASY_SETOPT( connectionData->curlHandle, CURLOPT_HTTPHEADER, connectionData->requestHeaders );
 
-    ELASTIC_APM_CURL_EASY_SETOPT( connectionData->curlHandle, CURLOPT_USERAGENT, userAgentHttpHeader );
+    ELASTIC_APM_CURL_EASY_SETOPT( connectionData->curlHandle, CURLOPT_USERAGENT, userAgentHttpHeader.begin );
 
     resultCode = resultSuccess;
     finally:
