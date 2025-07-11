@@ -19,8 +19,6 @@
 
 #pragma once
 
-#include "main/php_version.h"
-#include "Zend/zend_types.h"
 #include "ResultCode.h"
 
 void elasticApmModuleInit( int moduleType, int moduleNumber );
@@ -28,11 +26,6 @@ void elasticApmModuleShutdown( int moduleType, int moduleNumber );
 
 void elasticApmRequestInit();
 void elasticApmRequestShutdown();
-#if PHP_VERSION_ID >= 80000
-ZEND_RESULT_CODE  elasticApmRequestPostDeactivate(void);
-#else
-int  elasticApmRequestPostDeactivate(void);
-#endif
 
 struct _zval_struct;
 typedef struct _zval_struct zval;

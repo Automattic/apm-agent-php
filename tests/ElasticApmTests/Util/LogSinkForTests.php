@@ -35,29 +35,20 @@ use ElasticApmTests\ComponentTests\Util\OsUtilForTests;
  */
 final class LogSinkForTests extends SinkBase
 {
-    /** @var ?bool */
-    private static $isStderrDefined = null;
-
     /** @var string */
     private $dbgProcessName;
+
+    /** @var bool */
+    private $isStderrDefined;
 
     public function __construct(string $dbgProcessName)
     {
         $this->dbgProcessName = $dbgProcessName;
-    }
 
-    private static function ensureStdErrIsDefined(): bool
-    {
-        if (self::$isStderrDefined === null) {
-            if (defined('STDERR')) {
-                self::$isStderrDefined = true;
-            } else {
-                define('STDERR', fopen('php://stderr', 'w'));
-                self::$isStderrDefined = defined('STDERR');
-            }
+        if (!defined('STDERR')) {
+            define('STDERR', fopen('php://stderr', 'w'));
         }
-
-        return self::$isStderrDefined;
+        $this->isStderrDefined = defined('STDERR');
     }
 
     protected function consumePreformatted(
@@ -79,13 +70,6 @@ final class LogSinkForTests extends SinkBase
         $this->consumeFormatted($statementLevel, $formattedRecord);
     }
 
-    public static function writeLineToStdErr(string $text): void
-    {
-        if (self::ensureStdErrIsDefined()) {
-            fwrite(STDERR, $text . PHP_EOL);
-        }
-    }
-
     private function consumeFormatted(int $statementLevel, string $statementText): void
     {
         if (OsUtilForTests::isWindows()) {
@@ -96,7 +80,9 @@ final class LogSinkForTests extends SinkBase
             syslog(self::levelToSyslog($statementLevel), $statementText);
         }
 
-        self::writeLineToStdErr($statementText);
+        if ($this->isStderrDefined) {
+            fwrite(STDERR, $statementText . PHP_EOL);
+        }
     }
 
     public static function levelToString(int $level): string

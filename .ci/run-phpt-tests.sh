@@ -42,12 +42,7 @@ cd $APP_FOLDER/agent/native/ext
 mkdir -p $APP_FOLDER/build
 
 AGENT_EXTENSION_DIR=$APP_FOLDER/agent/native/_build/$BUILD_ARCHITECTURE-release/ext
-AGENT_LOADER_DIR=$APP_FOLDER/agent/native/_build/$BUILD_ARCHITECTURE-release/loader/code
-
-# copy loader library
-cp ${AGENT_LOADER_DIR}/elastic_apm_loader.so ${AGENT_EXTENSION_DIR}/
-
-AGENT_EXTENSION=$AGENT_EXTENSION_DIR/elastic_apm_loader.so
+AGENT_EXTENSION=$AGENT_EXTENSION_DIR/elastic_apm-$PHP_API.so
 
 ls -al $AGENT_EXTENSION_DIR
 
@@ -70,7 +65,7 @@ for phptFile in ./tests/*.phpt; do
 
     INI_FILE=`php -d 'display_errors=stderr' -r 'echo php_ini_loaded_file();' 2> /dev/null`
 
-    if test "$INI_FILE"; then
+    if test "$INI_FILE"; then 
         egrep -h -v $PHP_DEPRECATED_DIRECTIVES_REGEX "$INI_FILE" > /tmp/tmp-php.ini
     else
         echo > /tmp/tmp-php.ini

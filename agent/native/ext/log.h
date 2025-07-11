@@ -51,14 +51,6 @@ enum LogSinkType
 };
 typedef enum LogSinkType LogSinkType;
 
-#ifdef __cplusplus
-inline LogSinkType &operator++(LogSinkType &type) {
-        type  = static_cast<LogSinkType>(static_cast<int>(type) + 1);
-        return type;
-}
-#endif
-
-
 extern String logSinkTypeName[ numberOfLogSinkTypes ];
 extern LogLevel defaultLogLevelPerSinkType[ numberOfLogSinkTypes ];
 
@@ -67,7 +59,7 @@ extern LogLevel defaultLogLevelPerSinkType[ numberOfLogSinkTypes ];
 struct LoggerConfig
 {
     LogLevel levelPerSinkType[ numberOfLogSinkTypes ];
-    String file = nullptr;
+    String file;
 };
 typedef struct LoggerConfig LoggerConfig;
 
@@ -314,7 +306,6 @@ ResultCode resetLoggingStateInForkedChild();
 #define ELASTIC_APM_LOG_CATEGORY_UTIL "Util"
 
 #define ELASTIC_APM_LOG_DIRECT_CRITICAL( fmt, ... ) ELASTIC_APM_LOG_DIRECT( logLevel_critical, fmt, ##__VA_ARGS__ )
-#define ELASTIC_APM_LOG_DIRECT_WARNING( fmt, ... ) ELASTIC_APM_LOG_DIRECT( logLevel_warning, fmt, ##__VA_ARGS__ )
 #define ELASTIC_APM_LOG_DIRECT_INFO( fmt, ... ) ELASTIC_APM_LOG_DIRECT( logLevel_info, fmt, ##__VA_ARGS__ )
 #define ELASTIC_APM_LOG_DIRECT_DEBUG( fmt, ... ) ELASTIC_APM_LOG_DIRECT( logLevel_debug, fmt, ##__VA_ARGS__ )
 

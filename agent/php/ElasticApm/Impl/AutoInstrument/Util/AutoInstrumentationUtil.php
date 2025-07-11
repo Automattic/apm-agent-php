@@ -31,7 +31,6 @@ use Elastic\Apm\Impl\Log\LoggerFactory;
 use Elastic\Apm\Impl\Span;
 use Elastic\Apm\Impl\Util\Assert;
 use Elastic\Apm\Impl\Util\DbgUtil;
-use Elastic\Apm\Impl\Util\StackTraceUtil;
 use Elastic\Apm\SpanInterface;
 use Throwable;
 
@@ -57,7 +56,7 @@ final class AutoInstrumentationUtil
 
     public static function buildSpanNameFromCall(?string $className, string $funcName): string
     {
-        return ($className === null) ? $funcName : ($className . StackTraceUtil::CLASS_AND_METHOD_SEPARATOR . $funcName);
+        return ($className === null) ? $funcName : ($className . '->' . $funcName);
     }
 
     private static function processNewSpan(SpanInterface $span): void

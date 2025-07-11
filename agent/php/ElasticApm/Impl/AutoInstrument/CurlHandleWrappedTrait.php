@@ -100,7 +100,6 @@ trait CurlHandleWrappedTrait
 
     public function asInt(): int
     {
-        /** @phpstan-ignore-next-line */
         return is_resource($this->curlHandle) ? intval($this->curlHandle) : spl_object_id($this->curlHandle);
     }
 

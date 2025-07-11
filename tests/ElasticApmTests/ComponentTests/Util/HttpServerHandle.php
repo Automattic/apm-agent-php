@@ -38,8 +38,7 @@ class HttpServerHandle implements LoggableInterface
 {
     use LoggableTrait;
 
-    public const CLIENT_LOCALHOST_ADDRESS = '127.0.0.1';
-    public const SERVER_LOCALHOST_ADDRESS = self::CLIENT_LOCALHOST_ADDRESS;
+    public const DEFAULT_HOST = '127.0.0.1';
     public const STATUS_CHECK_URI_PATH = '/elastic_apm_php_tests_status_check';
     public const PID_KEY = 'pid';
 

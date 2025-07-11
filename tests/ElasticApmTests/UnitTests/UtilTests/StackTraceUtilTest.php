@@ -39,8 +39,6 @@ use ElasticApmTests\Util\StackTraceExpectations;
 use ElasticApmTests\Util\StackTraceFrameExpectations;
 use ElasticApmTests\Util\TestCaseBase;
 
-use function count;
-
 class StackTraceUtilTest extends TestCaseBase
 {
     private const NUMBER_OF_STACK_FRAMES_TO_SKIP_KEY = 'number_of_stack_frames_to_skip';
@@ -68,8 +66,6 @@ class StackTraceUtilTest extends TestCaseBase
 
     public function testClosureExpections(): void
     {
-        AssertMessageStack::newScope(/* out */ $dbgCtx);
-
         $closureFrameExpections = StackTraceFrameExpectations::fromLocationOnly(__FILE__, /* temp dummy lineNumber */ 0);
         /**
          * @return StackTraceFrame[]
@@ -80,13 +76,10 @@ class StackTraceUtilTest extends TestCaseBase
         };
         $thisFuncFrameExpections = StackTraceFrameExpectations::fromClosure(__FILE__, __LINE__ + 1, __NAMESPACE__, __CLASS__, /* isStatic */ false);
         $actualStackTrace = $closure();
-        $dbgCtx->add(compact('actualStackTrace'));
         self::assertCountAtLeast(3, $actualStackTrace);
         $closureFrameExpections->assertMatches($actualStackTrace[0]);
         self::assertNull($actualStackTrace[0]->function);
         $thisFuncFrameExpections->assertMatches($actualStackTrace[1]);
-
-        $dbgCtx->pop();
     }
 
     public static function testStaticClosureExpections(): void
@@ -113,18 +106,18 @@ class StackTraceUtilTest extends TestCaseBase
     public function dataProviderForTestConvertClassAndMethodToFunctionName(): iterable
     {
         yield ['MyClass', /* isStaticMethod */ true, 'myMethod', 'MyClass::myMethod'];
-        yield ['MyClass', /* isStaticMethod */ false, 'myMethod', 'MyClass::myMethod'];
-        yield ['MyClass', /* isStaticMethod */ null, 'myMethod', 'MyClass::myMethod'];
+        yield ['MyClass', /* isStaticMethod */ false, 'myMethod', 'MyClass->myMethod'];
+        yield ['MyClass', /* isStaticMethod */ null, 'myMethod', 'MyClass.myMethod'];
 
-        yield ['MyNamespace\\MyClass', /* isStaticMethod */ false, 'myMethod', 'MyNamespace\\MyClass::myMethod'];
-        yield ['', /* isStaticMethod */ false, 'myMethod', '::myMethod'];
+        yield ['MyNamespace\\MyClass', /* isStaticMethod */ false, 'myMethod', 'MyNamespace\\MyClass->myMethod'];
+        yield ['', /* isStaticMethod */ false, 'myMethod', '->myMethod'];
         yield ['', /* isStaticMethod */ true, 'myMethod', '::myMethod'];
-        yield ['', /* isStaticMethod */ null, 'myMethod', '::myMethod'];
+        yield ['', /* isStaticMethod */ null, 'myMethod', '.myMethod'];
         yield [null, /* isStaticMethod */ true, 'myMethod', 'myMethod'];
         yield [null, /* isStaticMethod */ false, 'myMethod', 'myMethod'];
         yield [null, /* isStaticMethod */ null, 'myMethod', 'myMethod'];
 
-        yield ['MyClass', /* isStaticMethod */ false, '', 'MyClass::'];
+        yield ['MyClass', /* isStaticMethod */ false, '', 'MyClass->'];
         yield ['MyClass', /* isStaticMethod */ true, '', 'MyClass::'];
         yield ['MyClass', /* isStaticMethod */ true, null, null];
         yield ['MyClass', /* isStaticMethod */ false, null, null];
@@ -145,8 +138,6 @@ class StackTraceUtilTest extends TestCaseBase
         $dbgCtx->add(['actualFuncName' => $actualFuncName]);
 
         self::assertSame($expectedFuncName, $actualFuncName);
-
-        $dbgCtx->pop();
     }
 
     /**
@@ -211,8 +202,6 @@ class StackTraceUtilTest extends TestCaseBase
             self::assertNotNull($frame->function);
             self::assertStringNotContainsString(__FUNCTION__, $frame->function);
         }
-
-        $dbgCtx->pop();
     }
 
     /**
@@ -342,8 +331,6 @@ class StackTraceUtilTest extends TestCaseBase
             self::assertNotNull($frame->function);
             self::assertStringNotContainsString(__FUNCTION__, $frame->function);
         }
-
-        $dbgCtx->pop();
     }
 
     /**
@@ -501,8 +488,6 @@ class StackTraceUtilTest extends TestCaseBase
         $dbgCtx->add(['actualOutputFrames' => $actualOutputFrames]);
         $expectedOutput = $maxNumberOfFrames === null ? $fullExpectedOutput : array_slice($fullExpectedOutput, /* offset */ 0, /* length */ $maxNumberOfFrames);
         StackTraceExpectations::fromFramesExpectations($expectedOutput)->assertMatches($actualOutputFrames);
-
-        $dbgCtx->pop();
     }
 
     private const CALL_KINDS_SEQUENCE_KEY = 'call_kinds_sequence';
@@ -621,8 +606,6 @@ class StackTraceUtilTest extends TestCaseBase
         $retVal = ($firstCall->callable)(...$firstCallArgs);
         $dbgCtx->add(['retVal' => $retVal]);
         StackTraceExpectations::fromFramesExpectations($retVal->expectations, /* allowToBePrefixOfActual */ true)->assertMatches($retVal->actual);
-
-        $dbgCtx->pop();
     }
 
     private const DEPTH_BEFORE_CALL_USER_FUNC_KEY = 'depth_before_call_user_func';
@@ -656,39 +639,32 @@ class StackTraceUtilTest extends TestCaseBase
     private function helperForTestCaptureInApmFormatWithCallUserFunc(MixedMap $testArgs, int $depth, array $framesExpectations): array
     {
         AssertMessageStack::newScope(/* out */ $dbgCtx, AssertMessageStack::funcArgs());
-        try {
-            $thisFuncAsCallable = [__CLASS__, __FUNCTION__];
-            $depthBeforeCallUserFunc = $testArgs->getInt(self::DEPTH_BEFORE_CALL_USER_FUNC_KEY);
-            $depthAfterCallUserFunc = $testArgs->getInt(self::DEPTH_AFTER_CALL_USER_FUNC_KEY);
-            self::assertLessThanOrEqual($depthBeforeCallUserFunc + $depthAfterCallUserFunc, $depth);
-            if ($depth === $depthBeforeCallUserFunc + $depthAfterCallUserFunc) {
-                $numberOfStackFramesToSkip = $testArgs->getPositiveOrZeroInt(self::NUMBER_OF_STACK_FRAMES_TO_SKIP_KEY);
-                array_unshift($framesExpectations, StackTraceFrameExpectations::fromLocationOnly(__FILE__, __LINE__ + 1));
-                $actuallyCatpuredStackTrace = self::stackTraceUtil()->captureInApmFormat($numberOfStackFramesToSkip, /* maxNumberOfFrames */ null);
-                return [array_slice($framesExpectations, $numberOfStackFramesToSkip), $actuallyCatpuredStackTrace];
-            }
-            if ($depth < $depthBeforeCallUserFunc || $depth > $depthBeforeCallUserFunc) {
-                array_unshift($framesExpectations, StackTraceFrameExpectations::fromClassMethod(__FILE__, __LINE__ + 1, __CLASS__, /* isStatic */ false, __FUNCTION__));
-                return $this->helperForTestCaptureInApmFormatWithCallUserFunc($testArgs, $depth + 1, $framesExpectations);
-            }
-
-            self::assertSame($depthBeforeCallUserFunc, $depth);
-            $isCallUserFuncArrayVariant = $testArgs->getBool(self::IS_CALL_USER_FUNC_ARRAY_VARIANT_KEY);
-            $framesExpectationForCallToThisFuncByCallUserFunc = StackTraceFrameExpectations::fromClassMethodNoLocation(__CLASS__, /* isStatic */ false, __FUNCTION__);
-            $callUserFuncLine = __LINE__ + 9; // it should have the line number with call_user_func_array($thisFuncAsCallable) or call_user_func($thisFuncAsCallable)
-            array_unshift(
-                $framesExpectations,
-                StackTraceFrameExpectations::fromStandaloneFunction(__FILE__, $callUserFuncLine, $isCallUserFuncArrayVariant ? 'call_user_func_array' : 'call_user_func')
-            );
-            array_unshift($framesExpectations, $framesExpectationForCallToThisFuncByCallUserFunc);
-            $callArgs = [$testArgs, $depth + 1, $framesExpectations];
-            self::assertSame(__LINE__ + 2, $callUserFuncLine);
-            /** @var array{StackTraceFrameExpectations[], StackTraceFrame[]} $retVal */
-            $retVal = $isCallUserFuncArrayVariant ? call_user_func_array($thisFuncAsCallable, $callArgs) : call_user_func($thisFuncAsCallable, ...$callArgs);
-            return $retVal;
-        } finally {
-            $dbgCtx->pop();
+        $thisFuncAsCallable = [__CLASS__, __FUNCTION__];
+        $depthBeforeCallUserFunc = $testArgs->getInt(self::DEPTH_BEFORE_CALL_USER_FUNC_KEY);
+        $depthAfterCallUserFunc = $testArgs->getInt(self::DEPTH_AFTER_CALL_USER_FUNC_KEY);
+        self::assertLessThanOrEqual($depthBeforeCallUserFunc + $depthAfterCallUserFunc, $depth);
+        if ($depth === $depthBeforeCallUserFunc + $depthAfterCallUserFunc) {
+            $numberOfStackFramesToSkip = $testArgs->getPositiveOrZeroInt(self::NUMBER_OF_STACK_FRAMES_TO_SKIP_KEY);
+            array_unshift($framesExpectations, StackTraceFrameExpectations::fromLocationOnly(__FILE__, __LINE__ + 1));
+            $actuallyCatpuredStackTrace = self::stackTraceUtil()->captureInApmFormat($numberOfStackFramesToSkip, /* maxNumberOfFrames */ null);
+            return [array_slice($framesExpectations, $numberOfStackFramesToSkip), $actuallyCatpuredStackTrace];
         }
+        if ($depth < $depthBeforeCallUserFunc || $depth > $depthBeforeCallUserFunc) {
+            array_unshift($framesExpectations, StackTraceFrameExpectations::fromClassMethod(__FILE__, __LINE__ + 1, __CLASS__, /* isStatic */ false, __FUNCTION__));
+            return $this->helperForTestCaptureInApmFormatWithCallUserFunc($testArgs, $depth + 1, $framesExpectations);
+        }
+
+        self::assertSame($depthBeforeCallUserFunc, $depth);
+        $isCallUserFuncArrayVariant = $testArgs->getBool(self::IS_CALL_USER_FUNC_ARRAY_VARIANT_KEY);
+        $framesExpectationForCallToThisFuncByCallUserFunc = StackTraceFrameExpectations::fromClassMethodNoLocation(__CLASS__, /* isStatic */ false, __FUNCTION__);
+        $callUserFuncLine = __LINE__ + 6;
+        array_unshift($framesExpectations, StackTraceFrameExpectations::fromStandaloneFunction(__FILE__, $callUserFuncLine, $isCallUserFuncArrayVariant ? 'call_user_func_array' : 'call_user_func'));
+        array_unshift($framesExpectations, $framesExpectationForCallToThisFuncByCallUserFunc);
+        $callArgs = [$testArgs, $depth + 1, $framesExpectations];
+        self::assertSame(__LINE__ + 2, $callUserFuncLine);
+        /** @var array{StackTraceFrameExpectations[], StackTraceFrame[]} $retVal */
+        $retVal = $isCallUserFuncArrayVariant ? call_user_func_array($thisFuncAsCallable, $callArgs) : call_user_func($thisFuncAsCallable, ...$callArgs);
+        return $retVal;
     }
 
     /**
@@ -697,15 +673,12 @@ class StackTraceUtilTest extends TestCaseBase
     public function testCaptureInApmFormatWithCallUserFunc(MixedMap $testArgs): void
     {
         AssertMessageStack::newScope(/* out */ $dbgCtx, AssertMessageStack::funcArgs());
-
         $framesExpectations = [StackTraceFrameExpectations::fromClassMethodUnknownLocation(__CLASS__, /* isStatic */ false, 'testCaptureInApmFormatWithCallUserFunc')];
         array_unshift($framesExpectations, StackTraceFrameExpectations::fromClassMethod(__FILE__, __LINE__ + 1, __CLASS__, /* isStatic */ false, 'helperForTestCaptureInApmFormatWithCallUserFunc'));
         $expectedActual = $this->helperForTestCaptureInApmFormatWithCallUserFunc($testArgs, /* depth */ 1, $framesExpectations);
         $dbgCtx->add(['expectedActual' => $expectedActual]);
         self::assertCount(2, $expectedActual);
         StackTraceExpectations::fromFramesExpectations($expectedActual[0], /* allowExpectedStackTraceToBePrefix */ true)->assertMatches($expectedActual[1]);
-
-        $dbgCtx->pop();
     }
 
     /**
@@ -820,8 +793,6 @@ class StackTraceUtilTest extends TestCaseBase
             $frame = $actualCapturedStackTrace[0];
             self::assertNotEquals(__FUNCTION__, $frame->function);
         }
-
-        $dbgCtx->pop();
     }
 
     /**
@@ -967,8 +938,6 @@ class StackTraceUtilTest extends TestCaseBase
             $frame = $actualCapturedStackTrace[$actualCapturedStackTraceFrameIndex];
             self::assertNotEquals(__FUNCTION__, $frame->function);
         }
-
-        $dbgCtx->pop();
     }
 
     /**
@@ -1104,8 +1073,6 @@ class StackTraceUtilTest extends TestCaseBase
         $dbgCtx->add(['actualOutputFrames' => $actualOutputFrames]);
         $expectedOutput = $maxNumberOfFrames === null ? $fullExpectedOutput : array_slice($fullExpectedOutput, /* offset */ 0, /* length */ $maxNumberOfFrames);
         StackTraceExpectations::fromFrames($expectedOutput)->assertMatches($actualOutputFrames);
-
-        $dbgCtx->pop();
     }
 
     /**
@@ -1228,8 +1195,6 @@ class StackTraceUtilTest extends TestCaseBase
             self::assertNotNull($frame->function);
             self::assertStringNotContainsString(__FUNCTION__, $frame->function);
         }
-
-        $dbgCtx->pop();
     }
 
     public function testLimitConfigToMaxNumberOfFrames(): void
@@ -1242,132 +1207,5 @@ class StackTraceUtilTest extends TestCaseBase
         self::assertSame(1, StackTraceUtil::convertLimitConfigToMaxNumberOfFrames(1));
         self::assertSame(2, StackTraceUtil::convertLimitConfigToMaxNumberOfFrames(2));
         self::assertSame(5, StackTraceUtil::convertLimitConfigToMaxNumberOfFrames(5));
-    }
-
-    private static function assertSameClassicFormatStackTraceFrames(ClassicFormatStackTraceFrame $expected, ClassicFormatStackTraceFrame $actual): void
-    {
-        AssertMessageStack::newScope(/* out */ $dbgCtx, AssertMessageStack::funcArgs());
-
-        self::assertCount(count(get_object_vars($expected)), get_object_vars($actual));
-
-        $dbgCtx->pushSubScope();
-        foreach (get_object_vars($expected) as $propName => $expectedPropVal) {
-            $dbgCtx->clearCurrentSubScope(compact('propName', 'expectedPropVal'));
-            self::assertSame($expectedPropVal, $actual->{$propName});
-        }
-        $dbgCtx->popSubScope();
-    }
-
-    /**
-     * @param ClassicFormatStackTraceFrame[] $expected
-     * @param ClassicFormatStackTraceFrame[] $actual
-     *
-     * @return void
-     */
-    private static function assertSameClassicFormatStackTraces(array $expected, array $actual): void
-    {
-        AssertMessageStack::newScope(/* out */ $dbgCtx, AssertMessageStack::funcArgs());
-
-        $dbgCtx->add(compact('expected', 'actual'));
-        self::assertCount(count($expected), $actual);
-
-        $dbgCtx->pushSubScope();
-        foreach (RangeUtil::generateUpTo(count($expected)) as $frameIndex) {
-            $dbgCtx->clearCurrentSubScope(compact('frameIndex'));
-            self::assertSameClassicFormatStackTraceFrames($expected[$frameIndex], $actual[$frameIndex]);
-        }
-        $dbgCtx->popSubScope();
-    }
-
-    /**
-     * @dataProvider boolDataProvider
-     */
-    public function testConvertCaptureToClassicFormatSleepExample(bool $addDummyLocationToSleepFunc): void
-    {
-        $input = [
-            [
-                'file'     => '/my_work/apm-agent-php/agent/php/ElasticApm/Impl/Util/StackTraceUtil.php',
-                'line'     => 131,
-                'function' => 'captureInClassicFormat',
-                'class'    => 'Elastic\Apm\Impl\Util\StackTraceUtil',
-                'type'     => '->',
-            ],
-            [
-                'file'     => '/my_work/apm-agent-php/agent/php/ElasticApm/Impl/InferredSpansBuilder.php',
-                'line'     => 98,
-                'function' => 'captureInClassicFormatExcludeElasticApm',
-                'class'    => 'Elastic\Apm\Impl\Util\StackTraceUtil',
-                'type'     => '->',
-            ],
-            [
-                'file'     => '/my_work/apm-agent-php/agent/php/ElasticApm/Impl/InferredSpansManager.php',
-                'line'     => 196,
-                'function' => 'captureStackTrace',
-                'class'    => 'Elastic\Apm\Impl\InferredSpansBuilder',
-                'type'     => '->',
-            ],
-            [
-                'function' => 'handleAutomaticCapturing',
-                'class'    => 'Elastic\Apm\Impl\InferredSpansManager',
-                'type'     => '->',
-            ],
-            [
-                'file'     => '/var/www/html/sleep.php',
-                'line'     => 6,
-                'function' => 'sleep',
-            ],
-            [
-                'file'     => '/var/www/html/sleep.php',
-                'line'     => 10,
-                'function' => 'coolsleep',
-            ],
-        ];
-        /** @var ClassicFormatStackTraceFrame[] $expectedOutput */
-        $expectedOutput = [
-            new ClassicFormatStackTraceFrame(
-                null /* <- file */,
-                null /* <- line */,
-                null /* <- class */,
-                null /* <- isStaticMethod */,
-                'sleep' /* <- function */
-            ),
-            new ClassicFormatStackTraceFrame(
-                '/var/www/html/sleep.php' /* <- file */,
-                6 /* <- line */,
-                null /* <- class */,
-                null /* <- isStaticMethod */,
-                'coolsleep' /* <- function */
-            ),
-            new ClassicFormatStackTraceFrame(
-                '/var/www/html/sleep.php' /* <- file */,
-                10 /* <- line */
-            ),
-        ];
-
-        if ($addDummyLocationToSleepFunc) {
-            $inputFrame =& $input[3];
-            self::assertSame('handleAutomaticCapturing', $inputFrame['function']);
-            self::assertArrayNotHasKey('file', $inputFrame);
-            self::assertArrayNotHasKey('line', $inputFrame);
-            $inputFrame['file'] = 'dummy_file_for_internal_func_sleep.php';
-            $inputFrame['line'] = 543;
-            $expectedOutputFrame =& $expectedOutput[0];
-            self::assertSame('sleep', $expectedOutputFrame->function);
-            self::assertNull($expectedOutputFrame->file);
-            self::assertNull($expectedOutputFrame->line);
-            $expectedOutputFrame->file = 'dummy_file_for_internal_func_sleep.php';
-            $expectedOutputFrame->line = 543;
-        }
-
-        $actualOutput = self::stackTraceUtil()->convertCaptureToClassicFormat(
-            $input,
-            3 /* <- offset */,
-            null /* <- maxNumberOfFrames */,
-            false /* <- keepElasticApmFrames */,
-            false /* <- includeArgs */,
-            false /* <- includeThisObj */
-        );
-
-        self::assertSameClassicFormatStackTraces($expectedOutput, $actualOutput);
     }
 }

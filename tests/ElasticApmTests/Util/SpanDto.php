@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace ElasticApmTests\Util;
 
+use Elastic\Apm\Impl\SpanToSendInterface;
 use Elastic\Apm\Impl\StackTraceFrame;
 use ElasticApmTests\Util\Deserialization\DeserializationUtil;
 use ElasticApmTests\Util\Deserialization\StacktraceDeserializer;
@@ -129,6 +130,11 @@ class SpanDto extends ExecutionSegmentDto
 
         SpanCompositeExpectations::assertNullableMatches($expectations->composite, $this->composite);
         SpanContextExpectations::assertNullableMatches($expectations->context, $this->context);
+    }
+
+    public function assertEquals(SpanToSendInterface $original): void
+    {
+        self::assertEqualOriginalAndDto($original, $this);
     }
 
     public function assertService(?string $targetType, ?string $targetName, string $destinationName, string $destinationResource, string $destinationType): void

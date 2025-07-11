@@ -24,7 +24,6 @@ declare(strict_types=1);
 namespace ElasticApmTests\ComponentTests\Util;
 
 use Elastic\Apm\Impl\AutoInstrument\AutoInstrumentationBase;
-use Elastic\Apm\Impl\Config\AllOptionsMetadata;
 use Elastic\Apm\Impl\Config\OptionNames;
 use Elastic\Apm\Impl\GlobalTracerHolder;
 use Elastic\Apm\Impl\Log\Level as LogLevel;
@@ -198,9 +197,7 @@ class ComponentTestCaseBase extends TestCaseBase
         $actualNames = $instr->keywords();
         $actualNames[] = $instr->name();
         self::assertEqualAsSets($expectedNames, $actualNames);
-        $astProcessEnabledDefaultValue = AllOptionsMetadata::get()[OptionNames::AST_PROCESS_ENABLED]->defaultValue();
-        $isEnabledByDefault = $astProcessEnabledDefaultValue || (!$instr->requiresUserlandCodeInstrumentation());
-        self::assertSame($isEnabledByDefault, $instr->isEnabled());
+        self::assertTrue($instr->isEnabled());
 
         /**
          * @param string $name
@@ -241,17 +238,17 @@ class ComponentTestCaseBase extends TestCaseBase
             $dbgCtx->clearCurrentSubScope(['disableInstrumentationsOptVal' => $disableInstrumentationsOptVal]);
             $tracer = self::buildTracerForTests()->withConfig(OptionNames::DISABLE_INSTRUMENTATIONS, $disableInstrumentationsOptVal)->build();
             $instr = new $instrClassName($tracer);
-            self::assertSame($isEnabledByDefault, $instr->isEnabled());
+            self::assertTrue($instr->isEnabled());
         }
         $dbgCtx->popSubScope();
 
         $dbgCtx->pushSubScope();
         foreach ([true, false] as $astProcessEnabled) {
             $dbgCtx->clearCurrentSubScope(['astProcessEnabled' => $astProcessEnabled]);
-            $isEnabledByDefault = $astProcessEnabled || (!$instr->requiresUserlandCodeInstrumentation());
+            $expectedIsEnabled = $astProcessEnabled || (!$instr->requiresUserlandCodeInstrumentation());
             $tracer = self::buildTracerForTests()->withConfig(OptionNames::AST_PROCESS_ENABLED, BoolUtil::toString($astProcessEnabled))->build();
             $instr = new $instrClassName($tracer);
-            self::assertSame($isEnabledByDefault, $instr->isEnabled());
+            self::assertSame($expectedIsEnabled, $instr->isEnabled());
         }
         $dbgCtx->popSubScope();
     }

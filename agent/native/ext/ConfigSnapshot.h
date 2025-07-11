@@ -29,65 +29,64 @@
 
 struct ConfigSnapshot
 {
-    bool abortOnMemoryLeak = false;
+    bool abortOnMemoryLeak;
         #ifdef PHP_WIN32
     bool allowAbortDialog;
         #endif
         #if ( ELASTIC_APM_ASSERT_ENABLED_01 != 0 )
-    AssertLevel assertLevel = assertLevel_off;
+    AssertLevel assertLevel;
         #endif
-    String apiKey = nullptr;
+    String apiKey;
     String atomicSite;
-    bool astProcessEnabled = false;
-    bool astProcessDebugDumpConvertedBackToSource = false;
-    String astProcessDebugDumpForPathPrefix = nullptr;
-    String astProcessDebugDumpOutDir = nullptr;
-    OptionalBool asyncBackendComm = {false, false};
-    String bootstrapPhpPartFile = nullptr;
-    bool breakdownMetrics = false;
-    bool captureErrors = false;
-    String devInternal = nullptr;
-    bool devInternalBackendCommLogVerbose = false;
-    String disableInstrumentations = nullptr;
-    bool disableSend = false;
-    bool enabled = false;
-    String environment = nullptr;
-    String globalLabels = nullptr;
-    String hostname = nullptr;
-    InternalChecksLevel internalChecksLevel = internalChecksLevel_off;
-    String logFile = nullptr;
-    LogLevel logLevel = logLevel_off;
-    LogLevel logLevelFile = logLevel_off;
-    LogLevel logLevelStderr = logLevel_off;
+    bool astProcessEnabled;
+    bool astProcessDebugDumpConvertedBackToSource;
+    String astProcessDebugDumpForPathPrefix;
+    String astProcessDebugDumpOutDir;
+    OptionalBool asyncBackendComm;
+    String bootstrapPhpPartFile;
+    bool breakdownMetrics;
+    bool captureErrors;
+    String devInternal;
+    bool devInternalBackendCommLogVerbose;
+    String disableInstrumentations;
+    bool disableSend;
+    bool enabled;
+    String environment;
+    String globalLabels;
+    String hostname;
+    InternalChecksLevel internalChecksLevel;
+    String logFile;
+    LogLevel logLevel;
+    LogLevel logLevelFile;
+    LogLevel logLevelStderr;
         #ifndef PHP_WIN32
-    LogLevel logLevelSyslog = logLevel_off;
+    LogLevel logLevelSyslog;
         #endif
         #ifdef PHP_WIN32
-    LogLevel logLevelWinSysDebug = logLevel_off;
+    LogLevel logLevelWinSysDebug;
         #endif
         #if ( ELASTIC_APM_MEMORY_TRACKING_ENABLED_01 != 0 )
-    MemoryTrackingLevel memoryTrackingLevel = memoryTrackingLevel_off;
+    MemoryTrackingLevel memoryTrackingLevel;
         #endif
-    String nonKeywordStringMaxLength = nullptr;
-    bool profilingInferredSpansEnabled = false;
-    String profilingInferredSpansMinDuration = nullptr;
-    String profilingInferredSpansSamplingInterval = nullptr;
-    String sanitizeFieldNames = nullptr;
-    String secretToken = nullptr;
-    String serverUrl = nullptr;
+    String nonKeywordStringMaxLength;
+    bool profilingInferredSpansEnabled;
+    String profilingInferredSpansMinDuration;
+    String profilingInferredSpansSamplingInterval;
+    String sanitizeFieldNames;
+    String secretToken;
+    String serverUrl;
     Duration serverTimeout;
-    String serviceName = nullptr;
-    String serviceNodeName = nullptr;
-    String serviceVersion = nullptr;
-    bool spanCompressionEnabled = false;
-    String spanCompressionExactMatchMaxDuration = nullptr;
-    String spanCompressionSameKindMaxDuration = nullptr;
-    String spanStackTraceMinDuration = nullptr;
-    String stackTraceLimit = nullptr;
-    String transactionIgnoreUrls = nullptr;
-    String transactionMaxSpans = nullptr;
-    String transactionSampleRate = nullptr;
-    String urlGroups = nullptr;
-    bool verifyServerCert = false;
-    String debugDiagnosticsFile = nullptr;
+    String serviceName;
+    String serviceNodeName;
+    String serviceVersion;
+    bool spanCompressionEnabled;
+    String spanCompressionExactMatchMaxDuration;
+    String spanCompressionSameKindMaxDuration;
+    String spanStackTraceMinDuration;
+    String stackTraceLimit;
+    String transactionIgnoreUrls;
+    String transactionMaxSpans;
+    String transactionSampleRate;
+    String urlGroups;
+    bool verifyServerCert;
 };

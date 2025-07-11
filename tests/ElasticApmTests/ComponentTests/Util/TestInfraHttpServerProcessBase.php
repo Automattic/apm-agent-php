@@ -29,9 +29,7 @@ use Elastic\Apm\Impl\Log\LoggableToString;
 use Elastic\Apm\Impl\Log\Logger;
 use Elastic\Apm\Impl\Util\ArrayUtil;
 use Elastic\Apm\Impl\Util\ExceptionUtil;
-use Elastic\Apm\Impl\Util\PhpErrorUtil;
 use ElasticApmTests\Util\LogCategoryForTests;
-use ElasticApmTests\Util\TestCaseBase;
 use ErrorException;
 use Exception;
 use PHPUnit\Framework\Assert;
@@ -74,23 +72,23 @@ abstract class TestInfraHttpServerProcessBase extends SpawnedProcessBase
             __FILE__
         )->addContext('this', $this);
 
-        $prevHandler = set_error_handler(
-            function (int $type, string $message, string $srcFile, int $srcLine, ?array $context = null): bool {
-                $msgCtx = [
-                    'message'         => $message,
-                    'error type'      => PhpErrorUtil::getTypeName($type) . ' (as int :' . $type . ')',
-                    'srcFile:srcLine' => $srcFile . ':' . $srcLine,
-                ];
-                if ($context !== null) {
-                    $msgCtx['context'] = $context;
-                }
-
-                $msgForEx = LoggableToString::convert($msgCtx);
+        set_error_handler(
+            function (
+                int $type,
+                string $message,
+                string $srcFile,
+                int $srcLine
+            ): bool {
+                $msgForEx = LoggableToString::convert(
+                    [
+                        'message' => $message,
+                        'error type' => $type,
+                        'srcFile:srcLine' => $srcFile . ':' . $srcLine,
+                    ]
+                );
                 throw new ErrorException($msgForEx, /* code: */ 0, $type, $srcFile, $srcLine);
-            },
-            E_ALL & ~E_DEPRECATED
+            }
         );
-        TestCaseBase::assertNull($prevHandler);
     }
 
     /** @inheritDoc */
@@ -140,7 +138,7 @@ abstract class TestInfraHttpServerProcessBase extends SpawnedProcessBase
     /**
      * @param ServerRequestInterface $request
      *
-     * @return null|ResponseInterface|Promise<ResponseInterface>
+     * @return null|ResponseInterface|Promise
      */
     abstract protected function processRequest(ServerRequestInterface $request);
 
@@ -169,7 +167,7 @@ abstract class TestInfraHttpServerProcessBase extends SpawnedProcessBase
         $this->reactLoop = Loop::get();
         TestCase::assertNotEmpty(AmbientContextForTests::testConfig()->dataPerProcess->thisServerPorts);
         foreach (AmbientContextForTests::testConfig()->dataPerProcess->thisServerPorts as $port) {
-            $uri = HttpServerHandle::SERVER_LOCALHOST_ADDRESS . ':' . $port;
+            $uri = HttpServerHandle::DEFAULT_HOST . ':' . $port;
             $serverSocket = new SocketServer($uri, /* context */ [], $this->reactLoop);
             $socketIndex = count($this->serverSockets);
             $this->serverSockets[] = $serverSocket;
@@ -183,7 +181,7 @@ abstract class TestInfraHttpServerProcessBase extends SpawnedProcessBase
                 /**
                  * @param ServerRequestInterface $request
                  *
-                 * @return ResponseInterface|Promise<ResponseInterface>
+                 * @return ResponseInterface|Promise
                  */
                 function (ServerRequestInterface $request) {
                     return $this->processRequestWrapper($request);
@@ -220,7 +218,7 @@ abstract class TestInfraHttpServerProcessBase extends SpawnedProcessBase
     /**
      * @param ServerRequestInterface $request
      *
-     * @return ResponseInterface|Promise<ResponseInterface>
+     * @return ResponseInterface|Promise
      */
     private function processRequestWrapper(ServerRequestInterface $request)
     {
@@ -264,7 +262,7 @@ abstract class TestInfraHttpServerProcessBase extends SpawnedProcessBase
     /**
      * @param ServerRequestInterface $request
      *
-     * @return ResponseInterface|Promise<ResponseInterface>
+     * @return ResponseInterface|Promise
      */
     private function processRequestWrapperImpl(ServerRequestInterface $request)
     {
